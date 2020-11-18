@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, Float
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import sessionmaker
+import pymysql
 
 Persisted = declarative_base()
 
@@ -40,10 +41,10 @@ class Pokemon(Persisted):
 class Pokemon_Database(object):
     @staticmethod
     def construct_mysql_url(authority, port, database, username, password):
-        return f'mysql+pymysql://{username}:{password}@{authority}:{port}/{database}'
+        return f'mysql://{username}:{password}@{authority}:{port}/{database}'
 
     def __init__(self, url):
-        self.engine = create_engine(url, pool_pre_ping=True)  # an engine is like an endpoint, something to connect to
+        self.engine = create_engine(url, pool_recycle=1800)  # an engine is like an endpoint, something to connect to
         self.Session = sessionmaker()  # create a class for connections to that endpoint / pylint: disable=invalid-name
         self.Session.configure(bind=self.engine)  # associate the class with the endpoint
 
