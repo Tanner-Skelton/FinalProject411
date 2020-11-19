@@ -1,4 +1,6 @@
-var margin = { top: 30, right: 20, bottom: 30, left: 50 };
+let selected_generation = 1;
+
+var margin = { top: 30, right: 100, bottom: 50, left: 100 };
 var width = 1500 - margin.left - margin.right;
 var height = 500 - margin.top - margin.bottom;
 var barHeight = 20;
@@ -16,13 +18,37 @@ var svg = d3
   .append("g")
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+svg
+  .append("text")
+  .attr("transform", "rotate(-90)")
+  .attr("y", -70)
+  .attr("x", 0 - height / 2 )
+  .attr("dy", "1em")
+  .style("text-anchor", "middle")
+  .style("fill", "black")
+  .text("Score");
+
+svg
+  .append("text")
+  .attr(
+    "transform",
+    "translate(" +
+      (width / 2) +
+      " ," +
+      (height + 40) +
+      ")"
+  )
+  .style("text-anchor", "middle")
+  .text("Rank #");
+
 var allgroup = svg.append("g");
 
 var tooltip = svg.append("text").style("visibility", "hidden");
 
 // Get the data
-generation2 = [];
+generation = [];
 all_scores = [];
+top_scores = [];
 d3.json("pokemon.php", function (error, data) {
   data.forEach(function (d) {
     d.pokedex_number = +d.pokedex_number;
@@ -50,8 +76,8 @@ d3.json("pokemon.php", function (error, data) {
     d.against_steel = +d.against_steel;
     d.against_water = +d.against_water;
     d.score = +d.score;
-    if (d.generation === 2) {
-      generation2.push(d);
+    if (d.generation === selected_generation) {
+      generation.push(d);
       d.score =
         d.defense /
           (d.against_bug +
@@ -76,66 +102,38 @@ d3.json("pokemon.php", function (error, data) {
 
       all_scores.push(d.score);
     }
-    if (d.generation === 1) {
-      data.splice(d, 1);
-    }
   });
 
-  var barWidth = width / generation2.length;
-  console.log(generation2);
-  console.log(data);
+  data = generation;
 
-  // add rect
+  var barWidth = width / generation.length;
 
-  svg.attr("height", height + margin.top);
-  var bar = allgroup
-    .selectAll("g")
-    .data(data)
-    .enter()
-    .append("g")
-    .attr("transform", function (d, i) {
-      return "translate(" + i * barWidth + ",0)";
-    });
+  data.sort((a, b) => {
+    return b.score - a.score;
+  });
 
-  bar
-    .append("rect")
-    .style("fill", "steelblue")
-    .attr("y", function (d) {
-      if (d.generation === 2) {
-        return d.score;
-      }
-    })
-    .attr("height", function (d) {
-      if (d.generation === 2) {
-        return height - d.score;
-      }
-    })
-    .attr("width", barWidth - 1)
-    .on("mouseover", function (d, i) {
-      var selectedBar = d3.select(this);
+  // sort all scores from greatest to least
+  all_scores.sort((a, b) => {
+    return b - a;
+  });
 
-      var tipx = barWidth * i;
-      var tipy = height - margin.top - d3.select(this).attr("height");
-      tooltip.attr("x", tipx);
-      tooltip.attr("y", tipy);
-      tooltip.attr("dx", -20);
-      tooltip.attr("dy", 20);
-      tooltip.style("visibility", "visible");
-      tooltip.style("fill", "black");
-      selectedBar.style("fill", "orange");
-      tooltip.text(d.name);
-    })
-    .on("mouseout", function () {
-      var selectedBar = d3.select(this);
-      tooltip.style("visibility", "hidden");
-      selectedBar.style("fill", "steelblue");
-    });
+  // obtain the top scores from all_scores
+  top_scores.push(all_scores.slice(0, 6));
+
+  top_scores.sort((a, b) => {
+    return b - a;
+  });
+
+  lowest_top_score = top_scores[0][5];
 
   // Scale the range of the data
-  x.domain([0, generation2.length]);
-  y.domain([0, 325]);
-
-  // svg.append("path"); // Add the valueline path.
+  x.domain([1, generation.length + 1]);
+  y.domain([
+    0,
+    d3.max(data, function (d) {
+      return d.score;
+    }),
+  ]);
 
   svg
     .append("g") // Add the X Axis
@@ -147,4 +145,61 @@ d3.json("pokemon.php", function (error, data) {
     .append("g") // Add the Y Axis
     .attr("class", "y axis")
     .call(yAxis);
+
+  svg.attr("height", height + margin.top);
+  var bar = allgroup
+    .selectAll("g")
+    .data(data)
+    .enter()
+    .append("g")
+    .attr("transform", function (d, i) {
+      return "translate(" + i * barWidth + ",0)";
+    });
+
+  // add rectangles
+  bar
+    .append("rect")
+    .style("fill", function (d) {
+      if (d.score >= lowest_top_score) {
+        return "green";
+      } else {
+        return "steelblue";
+      }
+    })
+    .attr("y", function (d) {
+      return y(d.score);
+    })
+    .attr("height", function (d) {
+      return height - y(d.score);
+    })
+    .attr("width", barWidth - 1)
+    .on("mouseover", function (d, i) {
+      var selectedBar = d3.select(this);
+
+      var tipx = barWidth * i;
+      var tipy = height - margin.top - d3.select(this).attr("height");
+      tooltip.attr("x", tipx);
+      tooltip.attr("y", tipy);
+      tooltip.attr("dx", -60);
+      tooltip.attr("dy", 20);
+      tooltip.style("visibility", "visible");
+      tooltip.style("fill", "clear");
+      tooltip.style("font-style", "oblique");
+      tooltip.style("font-size", "20px");
+      tooltip.style("stroke", "black");
+      tooltip.style("stroke-width", "1");
+      selectedBar.style("fill", "orange");
+      tooltip.text(d.name + " - Score: " + d.score.toFixed(1));
+    })
+    .on("mouseout", function () {
+      var selectedBar = d3.select(this);
+      tooltip.style("visibility", "hidden");
+      selectedBar.style("fill", function (d) {
+        if (d.score >= lowest_top_score) {
+          return "green";
+        } else {
+          return "steelblue";
+        }
+      });
+    });
 });
