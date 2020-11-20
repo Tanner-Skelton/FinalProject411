@@ -114,7 +114,7 @@
               generation.push(d);
               d.score =
                 d.defense /
-                  (d.against_bug +
+                  ((d.against_bug +
                     d.against_dark +
                     d.against_dragon +
                     d.against_electric +
@@ -131,7 +131,8 @@
                     d.against_psychic +
                     d.against_rock +
                     d.against_steel +
-                    d.against_water) +
+                    d.against_water) /
+                    18) +
                 d.attack * (1 + d.is_legendary);
 
               all_scores.push(d.score);
