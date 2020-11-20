@@ -133,7 +133,7 @@
                     d.against_steel +
                     d.against_water) /
                     18) +
-                d.attack * (1 + d.is_legendary);
+                d.attack * (d.is_legendary === 1 ? 1.5 : 1.0);
 
               all_scores.push(d.score);
             }
