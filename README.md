@@ -1,6 +1,6 @@
 # Pokemon Generation Analyzer Setup
 ### Setting up the Database
-- Locate the sqldump file within the .zip and extract it locally
+- Locate the sqldump file titled "Pokemon_data.sql" within the .zip and extract it locally
 - Open XAMPP and create a database titled "pokemon_database" using the dump file
 
 ### Creating a Test User
