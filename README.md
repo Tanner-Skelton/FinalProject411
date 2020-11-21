@@ -1,10 +1,10 @@
 # Pokemon Generation Analyzer Setup
 ### Setting up the Database
 - Locate the sqldump file within the .zip and extract it locally
-- Open XAMPP and create the database using the dump file
+- Open XAMPP and create a database titled "pokemon_database" using the dump file
 
 ### Creating a Test User
-- Inside phpmyadmin, navigate to the "privileges" tab
+- Inside the "pokemon_database" tab within phpmyadmin, navigate to the "privileges" tab
 - Create a new user named "testuser" with password "123" and host set to "localhost"
 - Supply this user with `SELECT` features only
 
