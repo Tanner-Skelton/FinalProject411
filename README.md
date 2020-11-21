@@ -4,7 +4,7 @@
 - Open XAMPP and create the database using the dump file
 
 ### Creating a Test User
-- Inside phpmyadmin, navigate to the "privilages" tab
+- Inside phpmyadmin, navigate to the "privileges" tab
 - Create a new user named "testuser" with password "123" and host set to "localhost"
 - Supply this user with `SELECT` features only
 
